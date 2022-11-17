@@ -58,7 +58,7 @@ async def upload(file:UploadFile = File(...)):
         finally:
             file.file.close()
 
-        return {"message": f"Successfully uploaded {listData}"}
+        return {"message":listData}
 
 @app.delete("/api/deleteFile")
 def delete_File():
