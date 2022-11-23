@@ -14,7 +14,10 @@ import {
 
 function UploadFile() {
   const [uploadFile, setUploadFile] = useState(null);
-  const labels = [
+  const [labels, setLabels] = useState();
+  const [name,setName] = useState("")
+  const [scoreBar,setScoreBar] = useState([]);
+/*   const labels = [
     "Spring Boot Testing",
     "IOC Container",
     "REST Web Services",
@@ -31,14 +34,14 @@ function UploadFile() {
     "Concurrency",
     "Agile Concepts",
     "Understanding Microservices",
-  ];
+  ]; */
 
   const [data, setData] = useState({
-    labels,
+    labels:labels,
     datasets: [
       {
-        label: "Josh",
-        data: [],
+        label: name,
+        data: scoreBar,
         backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
     ],
@@ -46,6 +49,7 @@ function UploadFile() {
   const inputFile = useRef(null);
   const updateTemplate = useRef(null);
   const [newCollaboratorModal, setNewCollaboratorModal] = useState(false);
+
 
   ChartJS.register(
     CategoryScale,
@@ -74,10 +78,11 @@ function UploadFile() {
     /* inputFile.current.click();
    setUploadFile(inputFile.current.value)
    */
-    restoreData();
+    
     e.preventDefault();
     const file = e.target.files[0];
     setUploadFile(file);
+    restoreData();
   };
 
   const submit = async () => {
@@ -112,23 +117,21 @@ function UploadFile() {
       formData.append("file", uploadFile);
 
       const res = await axios.post("/api/submitFile", formData);
-      const size = res.data.message.map((item, index) => {
-        let size = [];
-        let result = ( item / 2000 ) * 100
-        size.push(result);
-        return size;
-      });
+      setName(res.data.name)
+      setScoreBar(res.data.scoreBar.map((item, index) => {
+       
+        let result = ( item / 51923.5 ) * 100
+      
+        return result
+      }))
 
-      setData({
-        labels,
-        datasets: [
-          {
-            label: "Dataset 1",
-            data: size,
-            backgroundColor: "rgba(255, 99, 132, 0.5)",
-          },
-        ],
-      });
+      setLabels(res.data.concepts.map((item, index) => {
+        return item.value
+      }))
+
+      
+
+
       setNewCollaboratorModal(true);
     } catch (err) {
       console.log(err);
@@ -143,18 +146,31 @@ function UploadFile() {
     setNewCollaboratorModal(false);
   };
 
-  useEffect(() => {}, [uploadFile, data]);
-  console.log(data);
+  useEffect(() => {
+    setData({
+      labels,
+      datasets: [
+        {
+          label:name,
+          data:scoreBar,
+          backgroundColor: "rgba(255, 99, 132, 0.5)",
+        },
+      ],
+    });
+
+  }, [uploadFile,name,labels,scoreBar]);
+
+
   return (
     <>
       <Modal show={newCollaboratorModal} onHide={handleClose} size="lg">
         <div ref={updateTemplate}>
           <Form id="formTemplate">
             <Modal.Header closeButton>
-              <Modal.Title>USER STATUS</Modal.Title>
+              <Modal.Title>USER SCORE: </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <Bar options={options} data={data} />;
+              <Bar options={options} data={data} />
             </Modal.Body>
           </Form>
         </div>

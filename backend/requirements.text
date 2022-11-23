@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+os
+cv2
+numpy
+aspose.words
+PIL
+typing
+PyPDF2
+pdf2image

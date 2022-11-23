@@ -91,6 +91,7 @@ body {
 .cannot-upload-message span,
 .upload-button-icon {
 	padding-right: 10px;
+	transition-duration: 0.10s;
 }
 .cannot-upload-message span:last-child {
 	padding-left: 20px;
@@ -148,4 +149,8 @@ body {
 	margin: 10px;
 	padding: 7.5px 50px;
 	cursor: pointer;
+}
+.upload-button:hover {
+	background-color: #4d248f; /* Green */
+	color: white;
 }
