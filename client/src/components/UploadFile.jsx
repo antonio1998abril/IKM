@@ -11,33 +11,16 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import Loading from "./Loading";
 
 function UploadFile() {
   const [uploadFile, setUploadFile] = useState(null);
   const [labels, setLabels] = useState();
-  const [name,setName] = useState("")
-  const [scoreBar,setScoreBar] = useState([]);
-/*   const labels = [
-    "Spring Boot Testing",
-    "IOC Container",
-    "REST Web Services",
-    "Exception Handling",
-    "Generics and Collections",
-    "Object Orientation in Java",
-    "Design Patterns",
-    "Spring Boot Restful",
-    "Lambda Expressions",
-    "Java Streams",
-    "Cloud Fundamentals",
-    "Spring: Reactive Programming",
-    "Managing Entities in Java Persistence",
-    "Concurrency",
-    "Agile Concepts",
-    "Understanding Microservices",
-  ]; */
+  const [name, setName] = useState("");
+  const [scoreBar, setScoreBar] = useState([]);
 
   const [data, setData] = useState({
-    labels:labels,
+    labels: labels,
     datasets: [
       {
         label: name,
@@ -49,7 +32,8 @@ function UploadFile() {
   const inputFile = useRef(null);
   const updateTemplate = useRef(null);
   const [newCollaboratorModal, setNewCollaboratorModal] = useState(false);
-
+  /* SPINNER LOADING */
+  const [loading, setLoading] = useState(false);
 
   ChartJS.register(
     CategoryScale,
@@ -74,11 +58,6 @@ function UploadFile() {
   };
 
   const onButtonClick = (e) => {
-    // `current` points to the mounted file input element
-    /* inputFile.current.click();
-   setUploadFile(inputFile.current.value)
-   */
-    
     e.preventDefault();
     const file = e.target.files[0];
     setUploadFile(file);
@@ -87,52 +66,27 @@ function UploadFile() {
 
   const submit = async () => {
     try {
-      /*  let formData = new FormData();
-      formData.append("file", uploadFile); */
-
-      /*     const convert = async () => {
-        restoreData();
-        const arr = new Uint8Array(uploadFile)
-        let blob = new Blob([arr],{type:'application/pdf'})
-        let name = "data.pdf"
-         let newFile = new File([blob],name,{
-          type:blob.type
-         })
-    
-        let formData = new FormData();
-        formData.append("file", newFile);
-        
-        const res = await axios.post("/api/convert", formData);
-       
-      }; */
-
-      /*       const arr = new Uint8Array(uploadFile)
-        let blob = new Blob([arr],{type:'application/docx'})
-        let name = "data.docx"
-         let newFile = new File([blob],name,{
-          type:blob.type
-         })
-     */
       let formData = new FormData();
       formData.append("file", uploadFile);
-
-      const res = await axios.post("/api/submitFile", formData);
-      setName(res.data.name)
-      setScoreBar(res.data.scoreBar.map((item, index) => {
-       
-        let result = ( item / 51923.5 ) * 100
-      
-        return result
-      }))
-
-      setLabels(res.data.concepts.map((item, index) => {
-        return item.value
-      }))
-
-      
-
-
+      setLoading(true);
       setNewCollaboratorModal(true);
+      await axios.post("/api/submitFile", formData).then((res) => {
+        setName(res.data.name);
+        setScoreBar(
+          res.data.scoreBar.map((item, index) => {
+            let result = (item / 51923.5) * 100;
+            return result;
+          })
+        );
+
+        setLabels(
+          res.data.concepts.map((item, index) => {
+            return item.value;
+          })
+        );
+        setLoading(false);
+        setUploadFile(null);
+      });
     } catch (err) {
       console.log(err);
     }
@@ -151,28 +105,34 @@ function UploadFile() {
       labels,
       datasets: [
         {
-          label:name,
-          data:scoreBar,
+          label: name,
+          data: scoreBar,
           backgroundColor: "rgba(255, 99, 132, 0.5)",
         },
       ],
     });
-
-  }, [uploadFile,name,labels,scoreBar]);
-
+  }, [uploadFile, name, labels, scoreBar]);
 
   return (
     <>
       <Modal show={newCollaboratorModal} onHide={handleClose} size="lg">
         <div ref={updateTemplate}>
-          <Form id="formTemplate">
-            <Modal.Header closeButton>
-              <Modal.Title>USER SCORE: </Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <Bar options={options} data={data} />
-            </Modal.Body>
-          </Form>
+          {loading ? (
+            <div className="loading-position">
+              <Loading />
+            </div>
+          ) : (
+            <>
+              <Form id="formTemplate">
+                <Modal.Header closeButton>
+                  <Modal.Title>USER SCORE: </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <Bar options={options} data={data} />
+                </Modal.Body>
+              </Form>
+            </>
+          )}
         </div>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleClose}>
@@ -186,7 +146,7 @@ function UploadFile() {
           <div className="drag-file-area">
             <span className="material-icons-outlined upload-icon" type="submit">
               {" "}
-              {uploadFile ? <>Done</> : <>File_upload</>}{" "}
+              {uploadFile ? <>Ready</> : <>Choose a file</>}{" "}
             </span>
             <input
               type="file"
@@ -206,26 +166,31 @@ function UploadFile() {
             <span className="material-icons-outlined">error</span> Please select
             a file first{" "}
             <span className="material-icons-outlined cancel-alert-button">
-              cancel
+              Cancel
             </span>{" "}
           </span>
-          {/* <div className="file-block">
-			<div className="file-info"> <span className="material-icons-outlined file-icon">description</span> <span className="file-name"> </span> | <span className="file-size">  </span> </div>
-			<span className="material-icons remove-file-icon">delete</span>
-			<div className="progress-bar"> </div>
-		</div> */}
-          <button type="button" onClick={submit} className="upload-button">
-            {" "}
-            Get Values{" "}
-          </button>
-          <button
-            type="button"
-            onClick={() => setNewCollaboratorModal(true)}
-            className="upload-button"
-          >
-            {" "}
-            See Graph{" "}
-          </button>
+
+          {uploadFile ? (
+            <>
+              <button type="button" onClick={submit} className="upload-button">
+                {" "}
+                Run{" "}
+              </button>
+            </>
+          ) : null}
+
+          {name ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setNewCollaboratorModal(true)}
+                className="upload-button"
+              >
+                {" "}
+                See Graph{" "}
+              </button>
+            </>
+          ) : null}
         </div>
       </form>
     </>
