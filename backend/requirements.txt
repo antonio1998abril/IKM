@@ -4,3 +4,6 @@ numpy
 Pillow
 PyPDF2
 python-multipart
+pdf2image
+opencv-python-headless
+rapidfuzz
